@@ -3,3 +3,4 @@
 float glob_temperature = 0;
 float glob_humidity = 0;
 int glob_light = 0;
+bool glob_human_detected = false;

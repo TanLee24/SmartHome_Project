@@ -8,14 +8,12 @@ void temp_humi(void *pvParameters)
 
     while (1) 
     {
-        // Yêu cầu cảm biến đọc dữ liệu
         dht20.read();
         
-        // Lấy giá trị nhiệt độ (Celsius) và độ ẩm (%)
         float temperature = dht20.getTemperature();
         float humidity = dht20.getHumidity();
 
-        // Kiểm tra xem quá trình đọc có bị lỗi (trả về NaN) hay không
+        // Check if failed to read
         if (isnan(temperature) || isnan(humidity)) 
         {
             Serial.println("Failed to read from DHT sensor!");
@@ -23,11 +21,10 @@ void temp_humi(void *pvParameters)
         }
          else 
          {
-            // Cập nhật biến toàn cục
+            // Update global vars
             glob_temperature = temperature;
             glob_humidity = humidity;
 
-            // In kết quả ra Serial Monitor
             Serial.print("Humidity: ");
             Serial.print(humidity);
             Serial.print("%  Temperature: ");

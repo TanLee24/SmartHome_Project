@@ -13,6 +13,7 @@
 extern float glob_temperature;
 extern float glob_humidity;
 extern int glob_light;
+extern bool glob_human_detected;
 
 // P0 = 32
 // P1 = 33
