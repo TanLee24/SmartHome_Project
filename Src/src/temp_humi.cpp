@@ -4,13 +4,10 @@ DHT20 dht20;
 
 void temp_humi(void *pvParameters)
 {
-    // Khởi tạo bus I2C (SDA=21, SCL=22)
-    Wire.begin(21, 22);     
-    
-    // Khởi tạo cảm biến DHT20
     dht20.begin();
 
-    while (1) {
+    while (1) 
+    {
         // Yêu cầu cảm biến đọc dữ liệu
         dht20.read();
         
@@ -19,10 +16,13 @@ void temp_humi(void *pvParameters)
         float humidity = dht20.getHumidity();
 
         // Kiểm tra xem quá trình đọc có bị lỗi (trả về NaN) hay không
-        if (isnan(temperature) || isnan(humidity)) {
+        if (isnan(temperature) || isnan(humidity)) 
+        {
             Serial.println("Failed to read from DHT sensor!");
             temperature = humidity = -1;
-        } else {
+        }
+         else 
+         {
             // Cập nhật biến toàn cục
             glob_temperature = temperature;
             glob_humidity = humidity;
@@ -35,7 +35,6 @@ void temp_humi(void *pvParameters)
             Serial.println("°C");
         }
         
-        // Nhường CPU cho các task khác trong 5 giây (chuẩn RTOS)
         vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }

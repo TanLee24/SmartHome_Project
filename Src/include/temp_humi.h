@@ -1,8 +1,6 @@
 #ifndef __TEMP_HUMI_H__
 #define __TEMP_HUMI_H__
 
-#include <Arduino.h>
-#include "LiquidCrystal_I2C.h"
 #include "DHT20.h"
 #include "global.h"
 
