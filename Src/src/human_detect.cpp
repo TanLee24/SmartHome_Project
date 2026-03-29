@@ -1,36 +1,31 @@
 #include "human_detect.h"
 
-Adafruit_NeoPixel pixels(NUMPIXELS, RGB_LED, NEO_GRB + NEO_KHZ800);
 
-void humanDetect(void *pvParameters)
+void humanDetect(void *pvParameters) 
 {
-    pinMode(PIR_SENSOR, INPUT);
-
-    pixels.begin();
-    pixels.clear();
-    pixels.show();
+    pinMode(PIR_PIN, INPUT);
+    pinMode(SINGLE_LED_PIN, OUTPUT);
+    
+    digitalWrite(SINGLE_LED_PIN, LOW);
 
     while (1) 
     {
-        // 1 = Detected, 0 = Undetected
-        bool is_detected = digitalRead(PIR_SENSOR);
+        // 1 = Detected, vice versa
+        bool is_detected = digitalRead(PIR_PIN);
         
         glob_human_detected = is_detected;
 
         if (is_detected) 
         {
-            for(int i = 0; i < NUMPIXELS; i++) 
-            {
-                pixels.setPixelColor(i, pixels.Color(255, 0, 0));
-            }
-            Serial.println("PIR: Human detected!");
+            // Human detected (Moving) -> LED On
+            digitalWrite(SINGLE_LED_PIN, HIGH);
+            Serial.println("PIR: Human Detected!");
         } 
         else 
         {
-            pixels.clear(); 
+            // No moving -> LED Off
+            digitalWrite(SINGLE_LED_PIN, LOW);
         }
-        
-        pixels.show();
 
         vTaskDelay(pdMS_TO_TICKS(200));
     }

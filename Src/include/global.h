@@ -8,9 +8,10 @@
 
 #define LIGHT_SENSOR GPIO_NUM_27 // P2
 #define RGB_LED GPIO_NUM_32 // P0
-#define PIR_SENSOR GPIO_NUM_2 // P3
+#define PIR_PIN GPIO_NUM_2 // P3
 #define IR_PIN 33 // P1
 #define SERVO_PIN 5 // P16
+#define SINGLE_LED_PIN GPIO_NUM_19 // P14
 
 extern float glob_temperature;
 extern float glob_humidity;
