@@ -7,6 +7,7 @@
 #include "luminous_intensity.h"
 #include "lcd_display.h"
 #include "human_detect.h"
+#include "door_control.h"
 
 void setup() 
 {
@@ -24,6 +25,8 @@ void setup()
     xTaskCreate(lcdDisplay, "Task LCD Display", 4096, NULL, 1, NULL);
     // Task to Detect moving objects (human) using PIR sensor
     xTaskCreate(humanDetect, "Task Detect Human", 4096, NULL, 1, NULL);
+    // Task to Open door based on Password and Change Password
+    xTaskCreate(doorControl, "Task Door Control", 4096, NULL, 1, NULL);
 }
 
 void loop() {}
