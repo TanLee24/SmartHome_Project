@@ -1,6 +1,6 @@
 #include "lcd_display.h"
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd(0x21, 16, 2);
 
 void lcdDisplay(void *pvParameters) 
 {
@@ -17,7 +17,7 @@ void lcdDisplay(void *pvParameters)
         
         // Light
         lcd.setCursor(0, 1);
-        lcd.printf("Light: %d%%   ", glob_light);
+        lcd.printf("LIGHT: %d%%   ", glob_light);
         // lcd.printf("Light: %d", glob_light);
         
         vTaskDelay(pdMS_TO_TICKS(5000));
