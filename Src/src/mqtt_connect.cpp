@@ -13,7 +13,7 @@ PubSubClient client(espClient);
 
 // Biến lưu trạng thái thiết bị nhận từ server
 bool led_status = false;
-uint8_t led_r = 0, led_g = 0, led_b = 0;
+uint8_t led_r = 255, led_g = 255, led_b = 255;
 bool fan_status = false;
 int fan_speed = 100; // Tốc độ quạt mặc định (0 - 100%)
 

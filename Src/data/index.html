@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TanLee's Smart Home Voice Control</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e2f;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background: #2a2a40;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 80%;
+            max-width: 500px;
+        }
+        h1 { color: #4facfe; margin-bottom: 10px; }
+        .mic-btn {
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            font-size: 40px;
+            color: white;
+            cursor: pointer;
+            margin: 30px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+        .mic-btn:active { transform: scale(0.95); }
+        .mic-btn.listening {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(to right, #ff416c 0%, #ff4b2b 100%);
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 65, 108, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0); }
+        }
+        .status { font-size: 18px; color: #a0a0b5; min-height: 25px; }
+        .result {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ea1c;
+            min-height: 35px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Smart Home Voice Control</h1>
+    <p class="status" id="status-text">Nhấn vào Micro để bắt đầu nói</p>
+    
+    <button class="mic-btn" id="mic-btn">🎙️</button>
+    
+    <div class="result" id="result-text">...</div>
+</div>
+
+<script>
+    // Kiểm tra xem trình duyệt có hỗ trợ Web Speech API không
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng dùng Google Chrome!");
+    } else {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'vi-VN'; // Set ngôn ngữ Tiếng Việt
+        recognition.continuous = false; // Nghe xong 1 câu là tự tắt
+        recognition.interimResults = false; // Chỉ lấy kết quả cuối cùng cho chính xác
+
+        const micBtn = document.getElementById('mic-btn');
+        const statusText = document.getElementById('status-text');
+        const resultText = document.getElementById('result-text');
+
+        // Sự kiện khi bấm nút Micro
+        micBtn.addEventListener('click', () => {
+            recognition.start();
+        });
+
+        // Khi bắt đầu lắng nghe
+        recognition.onstart = function() {
+            micBtn.classList.add('listening');
+            statusText.innerText = "Đang lắng nghe... Hãy nói lệnh!";
+            resultText.innerText = "...";
+        };
+
+        // Khi nhận diện thành công
+        recognition.onresult = function(event) {
+            // Lấy chuỗi văn bản nhận diện được và chuyển thành chữ thường
+            const transcript = event.results[0][0].transcript.toLowerCase();
+            resultText.innerText = `"${transcript}"`;
+
+            // Xử lý từ khóa (Keyword matching)
+            if (transcript.includes("bật đèn") || transcript.includes("mở đèn")) {
+                statusText.innerText = "Đang gửi lệnh: BẬT ĐÈN RGB";
+                sendDirectCommandToCoreIoT(true);
+            } 
+            else if (transcript.includes("tắt đèn")) {
+                statusText.innerText = "Đang gửi lệnh: TẮT ĐÈN RGB";
+                sendDirectCommandToCoreIoT(false);
+            } 
+            else {
+                statusText.innerText = "Lệnh không hợp lệ. Vui lòng thử lại!";
+            }
+        };
+
+        // Khi kết thúc lắng nghe
+        recognition.onend = function() {
+            micBtn.classList.remove('listening');
+        };
+
+        // Khi có lỗi (VD: không có micro)
+        recognition.onerror = function(event) {
+            micBtn.classList.remove('listening');
+            statusText.innerText = "Lỗi nhận diện: " + event.error;
+        };
+    }
+
+    // --- HÀM GIAO TIẾP VỚI SERVER ---
+    function sendDirectCommandToCoreIoT(isTurnOn) {
+        const ACCESS_TOKEN = "h8pmt902y143ltzgdd3h"; 
+        
+        // Đổi đường dẫn URL từ /telemetry sang /rpc để gửi lệnh điều khiển
+        const url = `https://app.coreiot.io/api/v1/${ACCESS_TOKEN}/rpc`;
+        
+        // Đóng gói JSON chuẩn theo hàm callback() trong file coreiot.cpp của bạn
+        const payload = {
+            method: "setLedStatus",
+            params: isTurnOn
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if(response.ok) {
+                console.log("Đã gửi lệnh RPC thành công xuống thiết bị!");
+            } else {
+                console.log("Lỗi gửi dữ liệu.");
+            }
+        })
+        .catch(error => console.error('Lỗi:', error));
+    }
+</script>
+
+</body>
+</html>
