@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TanLee's Smart Home FaceAI</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #1a1a2e; color: white; text-align: center; }
+        .container { margin-top: 30px; }
+        #webcam-container canvas { border: 4px solid #0f3460; border-radius: 10px; }
+        .btn-start { background: #e94560; color: white; font-size: 20px; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 20px;}
+        #label-container { font-size: 24px; font-weight: bold; margin-top: 20px; color: #00ff88;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hệ Thống Gác Cổng AI - Smart Home</h1>
+        <button class="btn-start" type="button" onclick="init()">Bật Camera AI</button>
+        <div id="webcam-container"></div>
+        <div id="label-container">Đang chờ khởi động...</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    
+    <script type="text/javascript">
+        // 1. DÁN ĐƯỜNG LINK GOOGLE TEACHABLE MACHINE CỦA BẠN VÀO ĐÂY:
+        const URL = "https://teachablemachine.withgoogle.com/models/pm_iZMuhD/";
+        // 2. DÁN ACCESS TOKEN CỦA CORE IOT VÀO ĐÂY:
+        const ACCESS_TOKEN = "h8pmt902y143ltzgdd3h"; 
+
+        let model, webcam, labelContainer, maxPredictions;
+        let isDoorOpening = false; // Biến chống Spam lệnh mở cửa liên tục
+
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            document.getElementById("label-container").innerText = "Đang tải mô hình AI... Vui lòng đợi!";
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            const flip = true; 
+            webcam = new tmImage.Webcam(400, 400, flip); 
+            await webcam.setup(); 
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("label-container");
+        }
+
+        async function loop() {
+            webcam.update(); // Cập nhật hình ảnh webcam
+            await predict(); // Phân tích hình ảnh
+            window.requestAnimationFrame(loop); // Chạy vòng lặp liên tục
+        }
+
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            
+            // Tìm kết quả có tỷ lệ phần trăm (probability) cao nhất
+            let bestMatch = prediction[0];
+            for (let i = 1; i < maxPredictions; i++) {
+                if (prediction[i].probability > bestMatch.probability) {
+                    bestMatch = prediction[i];
+                }
+            }
+
+            let percent = Math.round(bestMatch.probability * 100);
+            labelContainer.innerHTML = "Nhận diện: " + bestMatch.className + " (" + percent + "%)";
+
+            // NẾU NHẬN DIỆN ĐƯỢC TÂN VỚI ĐỘ CHÍNH XÁC > 90% VÀ CỬA ĐANG ĐÓNG
+            if (bestMatch.className === "Tan" && bestMatch.probability > 0.90) {
+                if (!isDoorOpening) {
+                    isDoorOpening = true;
+                    labelContainer.innerHTML = "Xin chào Tân! Đang mở cửa...";
+                    sendDoorOpenCommand();
+                    
+                    // Khóa cờ 6 giây (3 giây mở + 3 giây chờ) để không gửi lệnh liên tục
+                    setTimeout(() => {
+                        isDoorOpening = false;
+                    }, 6000);
+                }
+            }
+        }
+
+        // Hàm gửi lệnh Mở cửa lên Core IoT bằng MQTT/HTTP POST
+        function sendDoorOpenCommand() {
+            const apiUrl = `https://app.coreiot.io/api/v1/${ACCESS_TOKEN}/rpc`;
+            const payload = {
+                method: "openDoor",
+                params: true
+            };
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if(response.ok) console.log("Đã gửi lệnh mở cửa thành công!");
+            })
+            .catch(error => console.error('Lỗi kết nối Server:', error));
+        }
+    </script>
+</body>
+</html>

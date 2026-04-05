@@ -54,6 +54,16 @@ void doorControl(void *pvParameters) {
     Serial.println("--- HỆ THỐNG KHÓA CỬA ĐÃ SẴN SÀNG ---");
 
     while (1) {
+        if (glob_open_door_request == true) {
+            Serial.println("FaceAI Confirm. Opening the door...");
+            doorServo.write(90); 
+            vTaskDelay(pdMS_TO_TICKS(3000)); // Mở 3 giây
+            doorServo.write(0);  
+            Serial.println("Locked the door.");
+            
+            glob_open_door_request = false; // Hạ cờ xuống sau khi xử lý xong
+        }
+
         if (irrecv.decode(&results)) {
             char key = decodeIR(results.value);
             

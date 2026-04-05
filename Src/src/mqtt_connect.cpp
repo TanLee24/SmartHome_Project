@@ -76,6 +76,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     else if (method == "setFanSpeed") {
         fan_speed = doc["params"].as<int>();
     }
+    else if (method == "openDoor") {
+        Serial.println("FaceAI: Open the door");
+        glob_open_door_request = true; // Phất cờ yêu cầu mở cửa
+    }
 
     // Thực thi lệnh ra phần cứng
     updateHardware();
