@@ -1,7 +1,7 @@
 #include "mqtt_connect.h"
 
-const char* ssid = "TannLee";
-const char* password = "12345678";
+const char* ssid = "ACLAB";
+const char* password = "ACLAB2023";
 const char* mqtt_server = "app.coreiot.io";
 const char* mqtt_token = "h8pmt902y143ltzgdd3h";
 const int mqtt_port = 1883;

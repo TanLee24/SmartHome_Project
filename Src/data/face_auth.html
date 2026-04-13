@@ -87,7 +87,8 @@
 
         // Hàm gửi lệnh Mở cửa lên Core IoT bằng MQTT/HTTP POST
         function sendDoorOpenCommand() {
-            const apiUrl = `https://app.coreiot.io/api/v1/${ACCESS_TOKEN}/rpc`;
+            // DÒNG MỚI CHUẨN XÁC:
+            const apiUrl = `https://app.coreiot.io/api/v1/${ACCESS_TOKEN}/telemetry`;
             const payload = {
                 method: "openDoor",
                 params: true
